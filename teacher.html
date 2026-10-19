@@ -889,7 +889,13 @@ async function _sbFetch(method,table,filter,body){
     opt.body = JSON.stringify(body)
   }
   let url = `${_SB_URL}/${table}`
-  if(filter) url += `?${filter}`
+  if(filter){
+    if(url.includes('?')){
+      url += `&${filter}`
+    }else{
+      url += `?${filter}`
+    }
+  }
   const res = await fetch(url,opt)
   if(!res.ok){
     const txt = await res.text();
@@ -897,6 +903,7 @@ async function _sbFetch(method,table,filter,body){
   }
   return res.json()
 }
+
 
 var __db={from:function(t){return _chain(t);}};
 function _chain(t){var s="*",q="",ms=false,c={
