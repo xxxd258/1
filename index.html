@@ -2397,18 +2397,26 @@ const AppState = {
 const ACCOUNT_API = true; // Supabase REST direct
 // Supabase REST wrapper - student page
 var _SB_URL="https://bophawndlkklciyjsejz.supabase.co/rest/v1";
-var _SB_KEY="sb_publishable_96TxLuGcRJ5HVE8BwZGbUw_hcvrnfM5";
+var _SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvcGhhd25kbGtrbGNpeWpzZWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMDc4NDQsImV4cCI6MjEwNzU4Mzg0NH0.A50wLfNCReZ1rpI4v5s45HSPvfZJQgfuA_YTukSVqWQ";
 function _sbFetch(method,table,queryStr,body,extraHeaders){
-  var h={"apikey":_SB_KEY,"Authorization":"Bearer "+_SB_KEY,"Content-Type":"application/json"};
+  const h={
+    "apikey":_SB_KEY,
+    "Authorization":"Bearer "+_SB_KEY,
+    "Content-Type":"application/json"
+  };
   if(extraHeaders)Object.assign(h,extraHeaders);
-  var opts={method:method,headers:h};
-  if(body)opts.body=(typeof body==='string'?body:JSON.stringify(body));
-  return fetch(_SB_URL+"/"+table+(queryStr||""),opts).then(function(r){
-    if(r.status===404&&extraHeaders&&extraHeaders["Accept"])return{data:null,error:null};
-    if(!r.ok)return r.text().then(function(t){return{data:null,error:{message:"HTTP "+r.status}};});
-    return r.text().then(function(t){if(!t||t.length===0)return{data:null,error:null};try{return{data:JSON.parse(t),error:null}}catch(e){return{data:null,error:null}}});
-  }).catch(function(e){return{data:null,error:{message:e.message||"网络错误"}};});
+  let url = _SB_URL + "/" + table;
+  if(queryStr) url += queryStr;
+
+  const opt={method,headers:h};
+  if(body) opt.body=JSON.stringify(body);
+
+  return fetch(url,opt).then(res=>{
+    if(!res.ok) throw new Error(res.status);
+    return res.json();
+  })
 }
+
 var __db={from:function(t){return _chain(t);}};
 function _chain(t){var s="*",q="",ms=false,c={
   select:function(x){s=x||"*";return c;},eq:function(k,v){q+=(q?"&":"?")+k+"=eq."+encodeURIComponent(v);return c;},
