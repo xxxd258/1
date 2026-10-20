@@ -890,6 +890,8 @@ async function _sbFetch(method,table,filter,body){
   }
   let url = `${_SB_URL}/${table}`
   if(filter){
+    // 自动删除filter最前面的?，防止双问号
+    filter = filter.replace(/^\?+/,'');
     if(url.includes('?')){
       url += `&${filter}`
     }else{
