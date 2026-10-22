@@ -2396,36 +2396,19 @@ const AppState = {
 // 后端 API 地址（部署时修改为实际服务器地址）
 const ACCOUNT_API = true; // Supabase REST direct
 // Supabase REST wrapper - student page
-var _SB_URL="https://gbxtunstgpcrjdqulefi.supabase.co/rest/v1";
-var _SB_KEY="sb_secret_9uj_eoUiGGZW5zVXMMSk7Q_Qd_jELxl";
-async function _sbFetch(method,table,filter,body){
-  const headers = {
-    "apikey": _SB_KEY,
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
-  }
-  let opt = {method,headers};
-  if(body){
-    opt.body = JSON.stringify(body)
-  }
-  let url = `${_SB_URL}/${table}`
-  if(filter){
-    // 自动删除filter最前面的?，防止双问号
-    filter = filter.replace(/^\?+/,'');
-    if(url.includes('?')){
-      url += `&${filter}`
-    }else{
-      url += `?${filter}`
-    }
-  }
-  const res = await fetch(url,opt)
-  if(!res.ok){
-    const txt = await res.text();
-    throw new Error(`http ${res.status}: ${txt}`)
-  }
-  return res.json()
+var _SB_URL="https://bophawndlkklciyjsejz.supabase.co/rest/v1";
+var _SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvcGhhd25kbGtrbGNpeWpzZWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMDc4NDQsImV4cCI6MjEwNzU4Mzg0NH0.A50wLfNCReZ1rpI4v5s45HSPvfZJQgfuA_YTukSVqWQ";
+function _sbFetch(method,table,queryStr,body,extraHeaders){
+  var h={"apikey":_SB_KEY,"Authorization":"Bearer "+_SB_KEY,"Content-Type":"application/json"};
+  if(extraHeaders)Object.assign(h,extraHeaders);
+  var opts={method:method,headers:h};
+  if(body)opts.body=(typeof body==='string'?body:JSON.stringify(body));
+  return fetch(_SB_URL+"/"+table+(queryStr||""),opts).then(function(r){
+    if(r.status===404&&extraHeaders&&extraHeaders["Accept"])return{data:null,error:null};
+    if(!r.ok)return r.text().then(function(t){return{data:null,error:{message:"HTTP "+r.status}};});
+    return r.text().then(function(t){if(!t||t.length===0)return{data:null,error:null};try{return{data:JSON.parse(t),error:null}}catch(e){return{data:null,error:null}}});
+  }).catch(function(e){return{data:null,error:{message:e.message||"网络错误"}};});
 }
-
 var __db={from:function(t){return _chain(t);}};
 function _chain(t){var s="*",q="",ms=false,c={
   select:function(x){s=x||"*";return c;},eq:function(k,v){q+=(q?"&":"?")+k+"=eq."+encodeURIComponent(v);return c;},
@@ -2433,7 +2416,7 @@ function _chain(t){var s="*",q="",ms=false,c={
   limit:function(n){if(n){q+="&limit="+n;}return c;},maybeSingle:function(){ms=true;return c;},
   insert:function(d){return _sbFetch("POST",t,"",d);},upsert:function(d){return _sbFetch("POST",t,"",d,{"Prefer":"resolution=merge-duplicates"});},
   update:function(d){return _sbFetch("PATCH",t,q,d);},delete:function(){return _sbFetch("DELETE",t,q);},
-  then:function(r,j){var qs=(s!=="*"?"select="+s:"")+(s!=="*"&&q?"&"+q.slice(1):q);_sbFetch("GET",t,qs,null,ms?{"Accept":"application/vnd.pgrst.object+json"}:null).then(r,j);}
+  then:function(r,j){var qs=(s!=="*"?"?select="+s:"")+(s!=="*"&&q?"&"+q.slice(1):q);_sbFetch("GET",t,qs,null,ms?{"Accept":"application/vnd.pgrst.object+json"}:null).then(r,j);}
 };return c;}
 async function _hashPwd(pwd,uname){var e=new TextEncoder();var b=await crypto.subtle.digest("SHA-256",e.encode(pwd+"::"+uname));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("");}
 function _mkToken(uid,un,role){return btoa(unescape(encodeURIComponent(JSON.stringify({u:uid,n:un,r:role,e:Date.now()+2592000000}))));}
@@ -2795,7 +2778,9 @@ async function doLogin(btn) {
   if (!pass) { errEl.textContent = '请输入密码'; errEl.classList.remove('hidden'); return; }
   var isStudent = document.getElementById('acct-login-as-student').checked;
   var classId = null;
-
+  if (isStudent) {
+    classId = document.getElementById('acct-login-class').value;
+    if (!classId) { errEl.textContent = '请选择班级'; errEl.classList.remove('hidden'); return; }
   }
   errEl.classList.add('hidden');
   btn.disabled = true; btn.textContent = '登录中...';
@@ -2811,7 +2796,7 @@ async function doRegister(btn) {
   if (!user || !pass) { errEl.textContent = '请填写姓名或学号和密码'; errEl.classList.remove('hidden'); return; }
   if (!studentNo) { errEl.textContent = '请填写学号'; errEl.classList.remove('hidden'); return; }
   var inviteCode = document.getElementById('acct-reg-class').value;
-
+  if (!inviteCode) { errEl.textContent = '请选择加入的班级'; errEl.classList.remove('hidden'); return; }
   if (user.length < 2 || user.length > 20) { errEl.textContent = '姓名需要2-20个字符'; errEl.classList.remove('hidden'); return; }
   if (pass.length < 3 || pass.length > 50) { errEl.textContent = '密码需要3-50个字符'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
@@ -6459,4 +6444,3 @@ window.addEventListener('scroll', function() {
 <button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="btn-scroll-top" style="position:fixed;z-index:500;bottom:24px;right:16px;width:40px;height:40px;border-radius:50%;background:var(--color-accent);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.18);font-size:18px;">⬆</button>
 </body>
 </html>
-
