@@ -2396,8 +2396,8 @@ const AppState = {
 // 后端 API 地址（部署时修改为实际服务器地址）
 const ACCOUNT_API = true; // Supabase REST direct
 // Supabase REST wrapper - student page
-var _SB_URL="https://bophawndlkklciyjsejz.supabase.co/rest/v1";
-var _SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvcGhhd25kbGtrbGNpeWpzZWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMDc4NDQsImV4cCI6MjEwNzU4Mzg0NH0.A50wLfNCReZ1rpI4v5s45HSPvfZJQgfuA_YTukSVqWQ";
+var _SB_URL="https://gbxtunstgpcrjdqulefi.supabase.co/rest/v1";
+var _SB_KEY="sb_secret_9uj_eoUiGGZW5zVXMMSk7Q_Qd_jELxl";
 async function _sbFetch(method,table,filter,body){
   const headers = {
     "apikey": _SB_KEY,
@@ -2795,9 +2795,7 @@ async function doLogin(btn) {
   if (!pass) { errEl.textContent = '请输入密码'; errEl.classList.remove('hidden'); return; }
   var isStudent = document.getElementById('acct-login-as-student').checked;
   var classId = null;
-  if (isStudent) {
-    classId = document.getElementById('acct-login-class').value;
-    if (!classId) { errEl.textContent = '请选择班级'; errEl.classList.remove('hidden'); return; }
+
   }
   errEl.classList.add('hidden');
   btn.disabled = true; btn.textContent = '登录中...';
@@ -2813,7 +2811,7 @@ async function doRegister(btn) {
   if (!user || !pass) { errEl.textContent = '请填写姓名或学号和密码'; errEl.classList.remove('hidden'); return; }
   if (!studentNo) { errEl.textContent = '请填写学号'; errEl.classList.remove('hidden'); return; }
   var inviteCode = document.getElementById('acct-reg-class').value;
-  if (!inviteCode) { errEl.textContent = '请选择加入的班级'; errEl.classList.remove('hidden'); return; }
+
   if (user.length < 2 || user.length > 20) { errEl.textContent = '姓名需要2-20个字符'; errEl.classList.remove('hidden'); return; }
   if (pass.length < 3 || pass.length > 50) { errEl.textContent = '密码需要3-50个字符'; errEl.classList.remove('hidden'); return; }
   errEl.classList.add('hidden');
