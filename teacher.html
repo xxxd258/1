@@ -2098,11 +2098,47 @@ function previewImport() {
   return { students: students, count: students.length };
 }
 var _importPreviewTimer = 0;
-async function confirmImport() {
-  showToast('正在处理...');
-  var data = previewImport();
-  if (data.count === 0) { showToast('未识别到学生数据，请检查格式'); return; }
-  if (!confirm('将导入 ' + data.count + ' 名学生到当前班级？\n默认密码：123')) return;
+async function confirmImport(){
+  // ✅ 从 TeacherState 拿班级ID
+  const classId = TeacherState.currentClassId;
+  if(!classId){
+    alert("请先在左侧点击选中一个班级，再导入！");
+    return;
+  }
+  const rawText = document.getElementById("importStudentText").value.trim();
+  if(!rawText){
+    alert("请粘贴学生名单");
+    return;
+  }
+  const lines = rawText.split("\n").filter(s=>s.trim());
+
+  for(const line of lines){
+    const stuName = line.trim();
+    if(!stuName) continue;
+    // 新增学生到 profiles
+    const {data:newStu, error:stuErr} = await __db.from("profiles")
+      .insert([{
+        "用户名": stuName,
+        "角色":"学生"
+      }])
+      .select()
+      .single();
+    if(stuErr){
+      console.error(stuErr);
+      alert("新增学生失败："+stuErr.message);
+      return;
+    }
+    // 关联到当前班级
+    await __db.from("class_members").insert([{
+      student_id: newStu.user_id,
+      class_id: classId
+    }])
+  }
+  alert("导入成功！");
+  closeImportModal();
+  reloadStudentList();
+}
+
   var cid = TeacherState.currentClassId;
   // 显示进度条，隐藏其他
   var progressEl=document.getElementById('import-progress');
