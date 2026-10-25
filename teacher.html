@@ -881,12 +881,11 @@ var _SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 function _sbFetch(method,table,queryStr,body,extraHeaders){
   var h={"apikey":_SB_KEY,"Authorization":"Bearer "+_SB_KEY,"Content-Type":"application/json"};
   if(extraHeaders)Object.assign(h,extraHeaders);
-  var opts={method:method,headers:h};
-  if(body)opts.body=(typeof body==='string'?body:JSON.stringify(body));
+  var opts={method:method,headers:h};if(body)opts.body=(typeof body==='string'?body:JSON.stringify(body));
   return fetch(_SB_URL+"/"+table+(queryStr||""),opts).then(function(r){
     if(r.status===404&&extraHeaders&&extraHeaders["Accept"])return{data:null,error:null};
     if(!r.ok)return r.text().then(function(t){return{data:null,error:{message:"HTTP "+r.status}};});
-    return r.text().then(function(t){if(!t||t.length===0)return{data:null,error:null};try{return{data:JSON.parse(t),error:null}}catch(e){return{data:null,error:null}}});
+    return r.json().then(function(j){return{data:j,error:null};}).catch(function(){return{data:null,error:null};});
   }).catch(function(e){return{data:null,error:{message:e.message||"网络错误"}};});
 }
 var __db={from:function(t){return _chain(t);}};
@@ -896,7 +895,7 @@ function _chain(t){var s="*",q="",ms=false,c={
   limit:function(n){if(n){q+="&limit="+n;}return c;},maybeSingle:function(){ms=true;return c;},
   insert:function(d){return _sbFetch("POST",t,"",d);},upsert:function(d){return _sbFetch("POST",t,"",d,{"Prefer":"resolution=merge-duplicates"});},
   update:function(d){return _sbFetch("PATCH",t,q,d);},delete:function(){return _sbFetch("DELETE",t,q);},
-  then:function(r,j){var qs=(s!=="*"?"select="+s:"")+(s!=="*"&&q?"&"+q.slice(1):q);_sbFetch("GET",t,qs,null,ms?{"Accept":"application/vnd.pgrst.object+json"}:null).then(r,j);}
+  then:function(r,j){var qs=(s!=="*"?"?select="+s:"")+(s!=="*"&&q?"&"+q.slice(1):q);_sbFetch("GET",t,qs,null,ms?{"Accept":"application/vnd.pgrst.object+json"}:null).then(r,j);}
 };return c;}
 async function _hashPwd(pwd,uname){var e=new TextEncoder();var b=await crypto.subtle.digest("SHA-256",e.encode(pwd+"::"+uname));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("");}
 function _mkToken(uid,un,role){return btoa(unescape(encodeURIComponent(JSON.stringify({u:uid,n:un,r:role,e:Date.now()+2592000000}))));}
@@ -2098,47 +2097,11 @@ function previewImport() {
   return { students: students, count: students.length };
 }
 var _importPreviewTimer = 0;
-async function confirmImport(){
-  // ✅ 从 TeacherState 拿班级ID
-  const classId = TeacherState.currentClassId;
-  if(!classId){
-    alert("请先在左侧点击选中一个班级，再导入！");
-    return;
-  }
-  const rawText = document.getElementById("importStudentText").value.trim();
-  if(!rawText){
-    alert("请粘贴学生名单");
-    return;
-  }
-  const lines = rawText.split("\n").filter(s=>s.trim());
-
-  for(const line of lines){
-    const stuName = line.trim();
-    if(!stuName) continue;
-    // 新增学生到 profiles
-    const {data:newStu, error:stuErr} = await __db.from("profiles")
-      .insert([{
-        "用户名": stuName,
-        "角色":"学生"
-      }])
-      .select()
-      .single();
-    if(stuErr){
-      console.error(stuErr);
-      alert("新增学生失败："+stuErr.message);
-      return;
-    }
-    // 关联到当前班级
-    await __db.from("class_members").insert([{
-      student_id: newStu.user_id,
-      class_id: classId
-    }])
-  }
-  alert("导入成功！");
-  closeImportModal();
-  reloadStudentList();
-}
-
+async function confirmImport() {
+  showToast('正在处理...');
+  var data = previewImport();
+  if (data.count === 0) { showToast('未识别到学生数据，请检查格式'); return; }
+  if (!confirm('将导入 ' + data.count + ' 名学生到当前班级？\n默认密码：123')) return;
   var cid = TeacherState.currentClassId;
   // 显示进度条，隐藏其他
   var progressEl=document.getElementById('import-progress');
