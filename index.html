@@ -2398,10 +2398,8 @@ const ACCOUNT_API = true; // Supabase REST direct
 // Supabase REST wrapper - student page
 var _SB_URL="https://bophawndlkklciyjsejz.supabase.co/rest/v1";
 var _SB_KEY="sb_publishable_96TxLuGcRJ5HVE8BwZGbUw_hcvrnfM5";
-function _sbFetch(method, table, queryStr, body, extraHeaders) {
-  // 只放 apikey，不要放 Authorization
-  var h = { "apikey": _SB_KEY, "Content-Type": "application/json" };
-  if (extraHeaders) Object.assign(h, extraHeaders);
+function _sbFetch(method,table,queryStr,body,extraHeaders){
+  var h={"apikey":_SB_KEY,"Authorization":"Bearer "+_SB_KEY,"Content-Type":"application/json"};
   if(extraHeaders)Object.assign(h,extraHeaders);
   var opts={method:method,headers:h};
   if(body)opts.body=(typeof body==='string'?body:JSON.stringify(body));
