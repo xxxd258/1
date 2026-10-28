@@ -1406,7 +1406,7 @@ input { font-family: inherit; }
       <div class="form-group" id="login-class-group" style="display:none;">
         <label>选择班级</label>
         <select id="acct-login-class" style="width:100%;padding:10px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;background:var(--color-bg);color:var(--color-text-primary);cursor:pointer;">
-          <option value="">请选择班级...</option>
+          <option value="">暂不加入（可选）</option>
         </select>
       </div>
       <div class="form-group" id="login-user-group">
@@ -1444,10 +1444,10 @@ input { font-family: inherit; }
         <input type="password" id="acct-reg-pass" placeholder="3-50个字符" autocomplete="new-password">
       </div>
       <div class="form-group">
-        <label>加入班级 <span style="color:red;">*</span></label>
-        <select id="acct-reg-class" style="width:100%;padding:10px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;background:var(--color-bg);color:var(--color-text-primary);cursor:pointer;">
-          <option value="">请选择班级...</option>
-        </select>
+        <label>加入班级 <span style="color:var(--color-text-muted);font-weight:400;">（选填）</span></label>
+        <select id="acct-reg-class" style="...">
+             <option value="">暂不加入（可稍后加入）</option>
+      </select>
       </div>
       <p class="form-error hidden" id="acct-reg-error"></p>
       <button class="btn btn-primary acct-submit" id="btn-register" onclick="doRegister(this)">注册并登录</button>
@@ -6260,9 +6260,9 @@ function init() {
     if (!pass) { errEl.textContent = '请输入密码'; errEl.classList.remove('hidden'); return; }
     var isStudent = cbStudent.checked;
     var classId = null;
-    if (isStudent) {
-      classId = document.getElementById('acct-login-class').value;
-      if (!classId) { errEl.textContent = '请选择班级'; errEl.classList.remove('hidden'); return; }
+        if (isStudent) {
+      classId = document.getElementById('acct-login-class').value || null; // 没选就是 null
+      // ❌ 删除了原先 if (!classId) 那行拦截
     }
     errEl.classList.add('hidden');
     var btn = this; btn.disabled = true; btn.textContent = '登录中...';
@@ -6280,7 +6280,7 @@ function init() {
     if (!user || !pass) { errEl.textContent = '请填写姓名或学号和密码'; errEl.classList.remove('hidden'); return; }
     if (!studentNo) { errEl.textContent = '请填写学号'; errEl.classList.remove('hidden'); return; }
     var inviteCode = document.getElementById('acct-reg-class').value;
-    if (!inviteCode) { errEl.textContent = '请选择加入的班级'; errEl.classList.remove('hidden'); return; }
+   
     if (user.length < 2 || user.length > 20) { errEl.textContent = '姓名需要2-20个字符'; errEl.classList.remove('hidden'); return; }
     if (pass.length < 3 || pass.length > 50) { errEl.textContent = '密码需要3-50个字符'; errEl.classList.remove('hidden'); return; }
     errEl.classList.add('hidden');
