@@ -2904,7 +2904,8 @@ async function loadMyClassList() {
       el.innerHTML = _infoClassData.map(function(c) {
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">' +
           '<span>🏫 ' + escHtml(c.className) + '</span>' +
-          '<button class="btn btn-sm btn-danger info-leave-class" data-cid="' + c.classId + '" style="padding:2px 10px;font-size:11px;">退出</button>' +
+      '<button class="btn btn-sm btn-danger info-leave-class" data-cid="' + escHtml(c.classId) + '" style="padding:2px 10px;font-size:11px;">退出</button>'
+
           '</div>';
       }).join('');
       el.querySelectorAll('.info-leave-class').forEach(function(btn) {
