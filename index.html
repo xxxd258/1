@@ -1403,11 +1403,12 @@ input { font-family: inherit; }
       <button class="account-tab" data-tab="register" onclick="switchLoginTab('register')">注册</button>
     </div>
     <div class="account-form" id="account-form-login">
-      <div class="form-group" id="login-class-group" style="display:none;">
-        <label>选择班级</label>
-        <select id="acct-login-class" style="width:100%;padding:10px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;background:var(--color-bg);color:var(--color-text-primary);cursor:pointer;">
-          <option value="">请选择班级...</option>
-        </select>
+        <!-- 改成这样 -->
+      <div class="form-group" id="login-class-group" style="display: none !important;">
+      <label>选择班级</label>
+         <select id="acct-login-class" style="width:100%;padding:10px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;background:var(--color-bg);color:var(--color-text-primary);cursor:pointer;">
+             <option value="">不选择班级</option>
+         </select>
       </div>
       <div class="form-group" id="login-user-group">
         <label>姓名</label>
@@ -6233,11 +6234,13 @@ function init() {
   var cbStudent = document.getElementById('acct-login-as-student');
   var cbTeacher = document.getElementById('acct-login-as-teacher');
   function _toggleLoginFields() {
-    var isStudent = cbStudent.checked;
-    document.getElementById('login-class-group').style.display = isStudent ? '' : 'none';
-    document.getElementById('login-user-group').style.display = ''; // always show
-    if (isStudent) loadLoginClasses();
-  }
+  var isStudent = cbStudent.checked;
+  // ❌ 删掉或者注释掉下面这一行
+  // document.getElementById('login-class-group').style.display = isStudent ? '' : 'none';
+  
+  document.getElementById('login-user-group').style.display = ''; // always show
+  // if (isStudent) loadLoginClasses(); // 这句也可以注释掉，因为不需要加载班级列表了
+}
   cbStudent.addEventListener('change', function() {
     if (this.checked) cbTeacher.checked = false;
     _toggleLoginFields();
@@ -6248,8 +6251,7 @@ function init() {
   });
   _toggleLoginFields(); // initialize
 
-  // 登录表单班级下拉→加载学生
-  document.getElementById('acct-login-class').addEventListener('change', loadLoginStudents);
+  
 
   // 登录按钮
   document.getElementById('btn-login').addEventListener('click', async function() {
@@ -6258,12 +6260,9 @@ function init() {
     var errEl = document.getElementById('acct-login-error');
     if (!user) { errEl.textContent = '请输入姓名'; errEl.classList.remove('hidden'); return; }
     if (!pass) { errEl.textContent = '请输入密码'; errEl.classList.remove('hidden'); return; }
-    var isStudent = cbStudent.checked;
+ 
     var classId = null;
-    if (isStudent) {
-      classId = document.getElementById('acct-login-class').value;
-      if (!classId) { errEl.textContent = '请选择班级'; errEl.classList.remove('hidden'); return; }
-    }
+   
     errEl.classList.add('hidden');
     var btn = this; btn.disabled = true; btn.textContent = '登录中...';
     try { await accountLogin(user, pass, classId); }
