@@ -2397,11 +2397,37 @@ const AppState = {
 // 后端 API 地址（部署时修改为实际服务器地址）
 const ACCOUNT_API = true; // Supabase REST direct
 // Supabase REST wrapper - student page
-var _SB_URL="https://bophawndlkklciyjsejz.supabase.co/rest/v1";
-var _SB_KEY="sb_publishable_96TxLuGcRJ5HVE8BwZGbUw_hcvrnfM5";
+// 1. 你的官方 Key（保持不变）
+var _SB_KEY="sb_publishable_96TxLuGcR35HVE8BwZ6bUw_hcvrnfM5";
+
+// 2. 智能判断网络环境，决定数据库地址
+var _SB_URL="https://bophawndlkciyjej.supabase.co/rest/v1"; // 默认外网直连
+var LOCAL_PROXY_URL="https://192.168.110.201:996/rest/v1"; // 教师机局域网代理（IP请按实际情况修改）
+
+// 探测教师机代理是否在线
+try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', LOCAL_PROXY_URL + '/', false); 
+    xhr.send();
+    if (xhr.status > 0) {
+        _SB_URL = LOCAL_PROXY_URL; // 如果在机房，自动切换走代理
+        console.log("✅ 已连接局域网代理");
+    }
+} catch (e) {
+    console.log("❌ 代理不可达，使用直连");
+}
+
 function _sbFetch(method,table,queryStr,body,extraHeaders){
-  var h={"apikey":_SB_KEY,"Authorization":"Bearer "+_SB_KEY,"Content-Type":"application/json"};
+  // 3. 修正请求头（去掉错误的 Authorization）
+  var h={"apikey":_SB_KEY,"Content-Type":"application/json"};
   if(extraHeaders)Object.assign(h,extraHeaders);
+  
+  // 如果当前已登录，再附上用户的 Token（用于数据库权限校验）
+  if(typeof AccountUser !== 'undefined' && AccountUser && AccountUser.token){
+      h["Authorization"]="Bearer "+AccountUser.token;
+  }
+
+  // ... 下面的代码保持你原来的样子即可 ...
   var opts={method:method,headers:h};
   if(body)opts.body=(typeof body==='string'?body:JSON.stringify(body));
   return fetch(_SB_URL+"/"+table+(queryStr||""),opts).then(function(r){
